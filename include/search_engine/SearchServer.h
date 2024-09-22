@@ -29,7 +29,7 @@ public:
      * @param queries_input A vector of queries.
      * @return A vector of vectors of pairs of integers and floats representing the search results.
      */
-    std::vector<std::vector<std::pair<int, float>>> searchFoo(const std::vector<std::string> &queries_input);
+    std::vector<std::vector<std::pair<int, float>>> finder(const std::vector<std::string> &queries_input);
 
 private:
     InvertedIndex m_index;  /**< Inverted index. */
@@ -58,7 +58,7 @@ private:
      */
     int findMaxAbsRel();
 
-    int m_maxAbsRelevance;  /**< Maximum absolute relevance. */
+    int m_maxAbsRelevance{};  /**< Maximum absolute relevance. */
 
     /**
      * @brief Sorts the relative index.

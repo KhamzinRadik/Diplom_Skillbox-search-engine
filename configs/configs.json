@@ -7,7 +7,6 @@
   "files": [
     "../examples/resources/file001.txt",
     "../examples/resources/file002.txt",
-    "../examples/resources/file003.txt",
-    "../examples/resources/file004.txt"
+    "../examples/resources/file003.txt"
   ]
 }

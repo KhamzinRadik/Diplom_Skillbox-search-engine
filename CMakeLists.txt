@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.28)
 
 set(unit_name "search_engine")
+
+set(CMAKE_BUILD_TYPE Release CACHE STRING "" FORCE)
 project(${unit_name} CXX)
+
+set(TEST ON)
 
 # Check if unit_name is defined
 if (NOT DEFINED unit_name)
@@ -19,30 +23,17 @@ endif ()
 
 
 include(FetchContent)
-include(FetchContent)
-include(FetchContent)
+
 
 # Find and include nlohmann_json using FetchContent (assuming required)
 FetchContent_Declare(nlohmann_json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
-FetchContent_MakeAvailable(nlohmann_json)
 
-# Find and include gtest using FetchContent (assuming required)
-FetchContent_Declare(
-        googletest
-        # Specify the commit you depend on and update it regularly.
-        URL https://github.com/google/googletest/archive/5376968f6948923e2411081fd9372e71a59d8e77.zip
-)
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
 # Find and include spdlog using FetchContent (assuming required)
 FetchContent_Declare(
         spdlog
         GIT_REPOSITORY https://github.com/gabime/spdlog.git
         GIT_TAG v1.12.0
 )
-
-FetchContent_MakeAvailable(spdlog)
 
 # Find source and header files using GLOB with informative message
 file(GLOB_RECURSE sources ${PROJECT_SOURCE_DIR}/${unit_name}/*.cpp)
@@ -63,8 +54,45 @@ endforeach (header)
 include_directories(${unit_name}
         include/search_engine
 )
+
+FetchContent_MakeAvailable(nlohmann_json)
+FetchContent_MakeAvailable(spdlog)
+
 add_executable(${unit_name} ${CMAKE_CURRENT_SOURCE_DIR}/${unit_name}/main.cpp ${sources} ${headers})
 target_link_libraries(${unit_name} PRIVATE nlohmann_json::nlohmann_json spdlog)
 
-# Now simply link against gtest or gtest_main as needed. Eg
-add_test(NAME example_test COMMAND ${unit_name})
+
+if (TEST)
+    set(unit_test "run-test")
+
+    FetchContent_Declare(
+            googletest
+            URL https://github.com/google/googletest/archive/5376968f6948923e2411081fd9372e71a59d8e77.zip
+    )
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+
+    find_package(GTest REQUIRED)
+    include_directories(${GTEST_INCLUDE_DIRS} include/${unit_name})
+
+    # Create the test executable
+    add_executable(${unit_test}
+            tests/test_main.cpp
+            tests/test_InvertedIndex.cpp
+            tests/test_SearchServer.cpp
+
+            include/${unit_name}/JsonFill.h
+            include/${unit_name}/ConverterJson.h
+            include/${unit_name}/InvertedIndex.h
+            include/${unit_name}/SearchServer.h
+
+            ${unit_name}/JsonFill.cpp
+            ${unit_name}/InvertedIndex.cpp
+            ${unit_name}/ConvertedJson.cpp
+            ${unit_name}/SearchServer.cpp
+    )
+    target_link_libraries(${unit_test} ${GTEST_LIBRARIES} pthread nlohmann_json::nlohmann_json spdlog)
+endif (TEST)
+
+
+

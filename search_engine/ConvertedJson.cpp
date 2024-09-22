@@ -113,8 +113,8 @@ std::vector<std::string> ConverterJson::GetRequests() {
     return m_requests;
 }
 
-void ConverterJson::putAnswers(std::vector<std::vector<std::pair<int, float>>> answers) {
-    std::ofstream file("answers.json", std::ios::out);
+void ConverterJson::putAnswers(std::vector<std::vector<std::pair<int, float>>> answers, const std::string &dir_answers) {
+    std::ofstream file(dir_answers, std::ios::out);
     std::map<std::string, nlohmann::json> outerLayer;
     std::vector<std::pair<std::pair<std::string, int>, std::pair<std::string, float>>> vecData;
 
@@ -169,4 +169,11 @@ std::vector<std::string> ConverterJson::GetRequestsData() {
 int ConverterJson::GetFilesNum() {
     m_numOfFiles = m_textFromDocs.size();
     return m_numOfFiles;
+}
+
+ConverterJson::ConverterJson(std::vector<std::string> &inDocs, std::vector<std::string> &inReqs) {
+    spdlog::info("ConverterJson: run with input documents and requests");
+
+    m_textFromDocs = inDocs;
+    m_requests = inReqs;
 }

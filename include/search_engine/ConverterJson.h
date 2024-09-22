@@ -66,7 +66,7 @@ public:
      *
      * @param answers A vector of vectors of pairs of integers and floats.
      */
-    void putAnswers(std::vector<std::vector<std::pair<int, float>>> answers);
+    void putAnswers(std::vector<std::vector<std::pair<int, float>>> answers, const std::string &dir_answers);
 
 private:
     /**

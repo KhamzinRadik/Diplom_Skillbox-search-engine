@@ -1,8 +1,8 @@
 #include "SearchServer.h"
 
-std::vector<std::vector<std::pair<int, float>>> SearchServer::searchFoo(const std::vector<std::string> &queries_input) {
-    for (int i = 0; i < queries_input.size(); i++) {
-        uniqRequestsFill(queries_input[i]);
+std::vector<std::vector<std::pair<int, float>>> SearchServer::finder(const std::vector<std::string> &queries_input) {
+    for (const auto & i : queries_input) {
+        uniqRequestsFill(i);
         preRelevanceFill();
         m_maxAbsRelevance = findMaxAbsRel();
         m_result.push_back(sortRelativeIndex());

@@ -8,11 +8,10 @@ void JsonFill::fillFile(const std::string &type) {
         m_configExample.files.emplace_back("../examples/resources/file001.txt");
         m_configExample.files.emplace_back("../examples/resources/file002.txt");
         m_configExample.files.emplace_back("../examples/resources/file003.txt");
-        m_configExample.files.emplace_back("../examples/resources/file004.txt");
     } else if (type == "request") {
-        m_requestExample.requests.emplace_back("milk water");
-        m_requestExample.requests.emplace_back("sugar");
-        m_requestExample.requests.emplace_back("It pepper salt milk number one saw");
+        m_requestExample.requests.emplace_back("Lorem ipsum");
+        m_requestExample.requests.emplace_back("Vitae");
+        m_requestExample.requests.emplace_back("Dapibus cursus orci iaculis");
     }
 }
 

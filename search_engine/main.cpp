@@ -13,6 +13,7 @@ const std::string CONFIG = "configs";
 const std::string CONFIG_DIR = "../configs/configs.json";
 const std::string REQUEST = "request";
 const std::string REQUEST_DIR = "../configs/request.json";
+const std::string ANSWER_DIR = "../examples/answers/answers.json";
 
 void createJsons() {
     JsonFill fileExample;
@@ -32,10 +33,13 @@ int main() {
     inv.UpdateDocumentBase(conv.GetTextDocuments());
     inv.threadsDistribution();
     SearchServer serv(inv, conv);
-    conv.putAnswers(serv.searchFoo(conv.GetRequestsData()));
+    conv.putAnswers(serv.finder(conv.GetRequestsData()), ANSWER_DIR);
 
     spdlog::info("Diff time: %h");
     showDocs();
+    std::cout << '\n';
+
+    spdlog::info("Answers is here: " + ANSWER_DIR);
 }
 
 void showDocs() {
@@ -45,13 +49,7 @@ void showDocs() {
         path << "../examples/resources/file00" << i + 1 << ".txt";
         std::ifstream file(path.str());
         spdlog::info("File name: " +  path.str() + ".");
-        std::string s;
-        while (!file.eof()) {
-            std::string tmp{};
-            file >> tmp;
-            s += tmp + " ";
-        }
-        spdlog::info("founded: -> \"" + s +  "\"");
+
     }
 }
 
