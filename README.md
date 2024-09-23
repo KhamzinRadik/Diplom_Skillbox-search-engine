@@ -5,7 +5,7 @@
 ## Описание
 
 Приложение для поиска запрашиваемых слов (JSON файл requests.json) в текстовых файлах ресурсов (путь к ресурсам указан в
-`./bin/configs.json`). Результат поиска помещается в `./bin/answers.json`.
+[configs.json](./bin/configs.json)). Результат поиска помещается в [answers.json](./bin/answers.json)
 
 ## Technologies
 
@@ -59,12 +59,4 @@
     "monkey"
   ]
 }
-```
-
-* answers.json<br>
-  File where search result will be written in JSON format.<br>
-  Example content:<br>
-
-```shell
-  ./bin/answers.json
 ```
