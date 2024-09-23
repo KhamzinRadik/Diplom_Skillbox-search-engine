@@ -1,10 +1,11 @@
 ![GitHub author](https://img.shields.io/badge/made_on-C++-blue)
-##  Поиск слов в файлах.
+
+## Поиск слов в файлах.
 
 ## Описание
 
 Приложение для поиска запрашиваемых слов (JSON файл requests.json) в текстовых файлах ресурсов (путь к ресурсам указан в
-config.json). Результат поиска помещается в answers.json.
+`./bin/configs.json`). Результат поиска помещается в `./bin/answers.json`.
 
 ## Technologies
 
