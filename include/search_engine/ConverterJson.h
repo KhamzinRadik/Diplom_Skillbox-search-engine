@@ -4,10 +4,13 @@
  * @file ConverterJson.h
  * @brief Header file for the ConverterJson class, which provides functionality for converting JSON data.
  */
+
+#include "utils/defs.h"
 #include <string>
 #include <vector>
 #include <fstream>
 #include "nlohmann/json.hpp"
+
 
 class ConverterJSON {
 public:
@@ -45,12 +48,12 @@ public:
     /**
      * Read config file specified in CONFIG_FILE_PATH
      */
-    void readConfigFile(std::string path = "config.json");
+    void readConfigFile(std::string path = CONFIGS_DIR);
 
     /**
      * Read request file specified in REQUEST_FILE_PATH
      */
-    void readRequestFile(std::string path = "requests.json");
+    void readRequestFile(std::string path = REQUESTS_DIR);
 
     /**
      * Get maximal responses quantity, which can be returned be Search Server
@@ -61,7 +64,6 @@ public:
 private:
     ConverterJSON() = default; // private constructor for singleton realization
     static ConverterJSON *instance;
-    const std::string ANSWERS_FILE_PATH = "answers.json";
     std::string applicationName;
     std::string applicationVersion;
     int maxResponses{5};

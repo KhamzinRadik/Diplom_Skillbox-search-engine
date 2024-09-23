@@ -60,7 +60,7 @@ private:
      * @param [in] request - separate string from request.json
      * @return set of unique words
      */
-    std::set<std::string> getUniqueWords(const std::string &request);
+    static std::set<std::string> getUniqueWords(const std::string &request);
 
     /**
      * Get the vector of entries for words set
@@ -73,7 +73,7 @@ private:
      * Sort the entries vector in ascending direction of entries count
      * @param [in/out] wordsEntries - entries vector
      */
-    void sortWordsAscendingToEntries(std::vector<std::pair<std::string, size_t>> &wordsEntries);
+    static void sortWordsAscendingToEntries(std::vector<std::pair<std::string, size_t>> &wordsEntries);
 
     /**
      * Get the vector of documents where all words from request can be found

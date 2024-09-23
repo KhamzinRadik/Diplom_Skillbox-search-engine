@@ -15,11 +15,11 @@ if (NOT DEFINED unit_name)
 endif ()
 
 
-if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/configs/configs.json")
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/bin/configs.json")
     message(FATAL_ERROR "Файл configs.json не найден! Он обязателен для сборки.")
 endif ()
 
-if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/configs/request.json")
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/bin/requests.json")
     message(FATAL_ERROR "Файл request.json не найден! Он обязателен для сборки.")
 endif ()
 
@@ -79,16 +79,11 @@ if (TEST)
 
     # Create the test executable
     add_executable(${unit_test}
-            tests/test_main.cpp
             tests/test_InvertedIndex.cpp
             tests/test_SearchServer.cpp
 
-            include/${unit_name}/JsonFill.h
-            include/${unit_name}/ConverterJson.h
-            include/${unit_name}/InvertedIndex.h
-            include/${unit_name}/SearchServer.h
+            ${header}
 
-            ${unit_name}/JsonFill.cpp
             ${unit_name}/InvertedIndex.cpp
             ${unit_name}/ConvertedJson.cpp
             ${unit_name}/SearchServer.cpp

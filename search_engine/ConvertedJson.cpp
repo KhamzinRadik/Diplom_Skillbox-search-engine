@@ -1,4 +1,4 @@
-#include "ConverterJSON.h"
+#include "ConverterJson.h"
 #include "utils/defs.h"
 
 #include <spdlog/spdlog.h>
@@ -116,13 +116,13 @@ void ConverterJSON::readConfigFile(std::string path) {
 }
 
 void ConverterJSON::readRequestFile(std::string path) {
-    std::cout << "Requests reading: ";
+    spdlog::info("Requests reading: ");
     std::ifstream configFile(path);
     if (configFile.is_open()) {
         nlohmann::json requestsDictionary;
         configFile >> requestsDictionary;
         requests.clear();
-        for (auto f: requestsDictionary["requests"]) {
+        for (const auto& f: requestsDictionary["requests"]) {
             requests.push_back(f);
         }
         configFile.close();

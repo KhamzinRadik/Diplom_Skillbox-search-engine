@@ -1,55 +1,49 @@
-#include <iostream>
-#include "JsonFill.h"
+
 #include "ConverterJson.h"
 #include "InvertedIndex.h"
 #include "SearchServer.h"
-#include "thread"
-#include "ctime"
+
 #include <spdlog/spdlog.h>
 
-void showDocs();
-
-const std::string CONFIG = "configs";
-const std::string CONFIG_DIR = "../configs/configs.json";
-const std::string REQUEST = "request";
-const std::string REQUEST_DIR = "../configs/request.json";
-const std::string ANSWER_DIR = "../examples/answers/answers.json";
-
-void createJsons() {
-    JsonFill fileExample;
-    fileExample.fillFile(CONFIG);
-    fileExample.printFile(CONFIG, CONFIG_DIR);
-    fileExample.fillFile(REQUEST);
-    fileExample.printFile(REQUEST, REQUEST_DIR);
+/**
+ * Write answers to the JSON file answers.json
+ * @param [in] allRequestsResults result of search for relevant pages
+ */
+void writeAnswers(const std::vector<std::vector<RelativeIndex>> &allRequestsResults) {
+    if (allRequestsResults.empty()) {
+        spdlog::error("No matches are found.");
+        return;
+    }
+    std::vector<std::vector<std::pair<int, float>>> allRequestsResultsReadyForJSON;
+    for (auto &requestResult: allRequestsResults) {
+        std::vector<std::pair<int, float>> requestResultReadyForJSON;
+        for (auto &pageRelevance: requestResult) {
+            std::pair<int, float> relevancePair;
+            relevancePair.first = (int) pageRelevance.doc_id;
+            relevancePair.second = pageRelevance.rank;
+            requestResultReadyForJSON.push_back(relevancePair);
+        }
+        allRequestsResultsReadyForJSON.push_back(requestResultReadyForJSON);
+    }
+    ConverterJSON::getInstance()->putAnswers(allRequestsResultsReadyForJSON);
 }
 
 int main() {
-    createJsons();
 
-    std::ifstream _dir(CONFIG_DIR);
-    ConverterJson conv(_dir);
-    auto _limitResponse = conv.GetResponseLimit();
-    InvertedIndex inv(conv);
-    inv.UpdateDocumentBase(conv.GetTextDocuments());
-    inv.threadsDistribution();
-    SearchServer serv(inv, conv);
-    conv.putAnswers(serv.finder(conv.GetRequestsData()), ANSWER_DIR);
+    ConverterJSON::getInstance()->readConfigFile();
+    ConverterJSON::getInstance()->readRequestFile();
+    std::vector<std::string> documents = ConverterJSON::getInstance()->getTextDocuments();
+    auto *invertedIndex = new InvertedIndex();
+    invertedIndex->updateDocumentBase(documents);
 
-    spdlog::info("Diff time: %h");
-    showDocs();
-    std::cout << '\n';
-
-    spdlog::info("Answers is here: " + ANSWER_DIR);
-}
-
-void showDocs() {
-    std::cout << std::endl;
-    for (int i = 0; i < 3; i++) {
-        std::stringstream path;
-        path << "../examples/resources/file00" << i + 1 << ".txt";
-        std::ifstream file(path.str());
-        spdlog::info("File name: " +  path.str() + ".");
-
-    }
+    spdlog::info("Searching...");
+    SearchServer searchServer(*invertedIndex);
+    searchServer.setMaxResponses(ConverterJSON::getInstance()->getMaxResponses());
+    auto allRequestsResults = searchServer.search(ConverterJSON::getInstance()->getRequests());
+    writeAnswers(allRequestsResults);
+    spdlog::info("Successful!");
+    spdlog::info("Enter for close.");
+    getchar();
+    spdlog::info("Bye");
 }
 
