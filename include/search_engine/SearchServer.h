@@ -4,66 +4,89 @@
  * @file SearchServer.h
  * @brief Header file for the SearchServer class, which provides functionality for searching through an inverted index.
  */
-#include <vector>
-#include <iostream>
-#include <map>
-#include "InvertedIndex.h"
-#include "ConverterJson.h"
 
-/**
- * @brief Class for searching through an inverted index.
- */
+#include <iostream>
+#include <vector>
+#include <map>
+#include <set>
+#include <algorithm>
+#include <cmath>
+
+#include "InvertedIndex.h"
+
+struct RelativeIndex {
+    size_t doc_id;
+    float rank;
+    size_t absoluteIndex{}; // Added for convenience.
+
+    bool operator==(const RelativeIndex &other) const {
+        return (doc_id == other.doc_id && rank == other.rank);
+    }
+
+    bool operator>(const RelativeIndex &other) const {
+        return (rank > other.rank || (rank == other.rank && doc_id < other.doc_id));
+    }
+};
+
 class SearchServer {
 public:
-    /**
-     * @brief Constructor for the SearchServer class, taking an InvertedIndex and ConverterJson object as input.
-     *
-     * @param inIdx An InvertedIndex object.
-     * @param inJson A ConverterJson object.
-     */
-    SearchServer(InvertedIndex &inIdx, ConverterJson &inJson) : m_index(inIdx), m_dataJson(inJson) {};
 
     /**
-     * @brief Searches for queries in the inverted index.
-     *
-     * @param queries_input A vector of queries.
-     * @return A vector of vectors of pairs of integers and floats representing the search results.
-     */
-    std::vector<std::vector<std::pair<int, float>>> finder(const std::vector<std::string> &queries_input);
+    * @param idx - link to the InvertedIndex instance to
+    * let SearchServer know the word frequency in files.
+    */
+    SearchServer(InvertedIndex &idx) : _index(idx) {};
+
+    /**
+    * Process the search request
+    * @param [in] queries_input - search requests from requests.json
+    * @return the sorted list of relevant answers
+    */
+    std::vector<std::vector<RelativeIndex>> search(const std::vector<std::string> &queries_input);
+
+    /**
+    * Set maximal responses quantity from Search Server
+    * @param [in] newMaxResponses - new value for maximal responses quantity
+    */
+    void setMaxResponses(const int &newMaxResponses);
 
 private:
-    InvertedIndex m_index;  /**< Inverted index. */
-    ConverterJson m_dataJson;  /**< ConverterJson object. */
-    std::map<std::string, int> m_uniqRequests;  /**< Map of unique requests. */
-    std::multimap<int, int> m_preRelevance;  /**< Multimap of pre-relevance. */
-    std::vector<std::vector<std::pair<int, float>>> m_result;  /**< Vector of results. */
-    std::vector<std::pair<int, float>> m_relativeIndex;  /**< Vector of relative index. */
+
+    InvertedIndex _index;
+    int maxResponses{5};
 
     /**
-     * @brief Fills the map of unique requests.
-     *
-     * @param request The request to add.
+     * Getting unique words from request line
+     * @param [in] request - separate string from request.json
+     * @return set of unique words
      */
-    void uniqRequestsFill(const std::string &request);
+    std::set<std::string> getUniqueWords(const std::string &request);
 
     /**
-     * @brief Fills the multimap of pre-relevance.
+     * Get the vector of entries for words set
+     * @param [in] words - set of words
+     * @return vector of entries
      */
-    void preRelevanceFill();
+    std::vector<std::pair<std::string, size_t>> getWordsEntries(const std::set<std::string> &words);
 
     /**
-     * @brief Finds the maximum absolute relevance.
-     *
-     * @return The maximum absolute relevance.
+     * Sort the entries vector in ascending direction of entries count
+     * @param [in/out] wordsEntries - entries vector
      */
-    int findMaxAbsRel();
-
-    int m_maxAbsRelevance{};  /**< Maximum absolute relevance. */
+    void sortWordsAscendingToEntries(std::vector<std::pair<std::string, size_t>> &wordsEntries);
 
     /**
-     * @brief Sorts the relative index.
-     *
-     * @return The sorted relative index.
+     * Get the vector of documents where all words from request can be found
+     * @param [in] words - vector of pairs "word - entry count"
+     * @return the vector of document ids where all words can be found
      */
-    std::vector<std::pair<int, float>> sortRelativeIndex();
+    std::vector<size_t> getAllDocumentsWithWords(const std::vector<std::pair<std::string, size_t>> &words);
+
+    /**
+     * Calculate absolute relevance of the document for certain words
+     * @param [in] docId - document id
+     * @param [in] uniqueWords - request words vector
+     * @return absolute relevance
+     */
+    size_t getAbsoluteRelevanceForDocument(size_t docId, std::set<std::string> &uniqueWords);
 };

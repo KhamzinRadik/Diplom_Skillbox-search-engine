@@ -6,96 +6,68 @@
  */
 #include <string>
 #include <vector>
-#include <map>
-#include <nlohmann/json.hpp>
+#include <fstream>
+#include "nlohmann/json.hpp"
 
-#include "utils/defs.h"
-
-/**
- * @brief Class for converting JSON data.
- */
-class ConverterJson {
+class ConverterJSON {
 public:
-    /**
-     * @brief Default constructor for the ConverterJson class.
-     */
-    ConverterJson() = delete;
-    /**
-     * @brief Constructor for the ConverterJson class with dir for configs.json.
-     */
-    explicit ConverterJson(std::ifstream &_configRead);
 
     /**
-     * @brief Constructor for the ConverterJson class, taking input documents and requests.
-     *
-     * @param inDocs A vector of input documents.
-     * @param inReqs A vector of input requests.
-     */
-    ConverterJson(std::vector<std::string> &inDocs, std::vector<std::string> &inReqs);
+    * Get the Instance object of ConverterJSON class
+    * @return instance of the singleton
+    */
+    static ConverterJSON *getInstance();
 
     /**
-     * @brief Gets the vector of text documents.
-     *
-     * @return A vector of text documents.
+     * Get the files content in string vector form
+     * @return content of files listed in config.json
      */
-    std::vector<std::string> &GetTextDocuments();
+    std::vector<std::string> getTextDocuments();
 
     /**
-     * @brief Gets the number of files.
-     *
-     * @return The number of files.
+     * Get the max responses per request
+     * @return max responses count
      */
-    int GetFilesNum();
+    int getResponsesLimit() const;
 
     /**
-     * @brief Gets the response limit.
-     *
-     * @return The response limit.
+     * Get the Requests from requests.json
+     * @return requests vector
      */
-    int GetResponseLimit() const;
+    std::vector<std::string> getRequests();
 
     /**
-     * @brief Gets the vector of requests data.
-     *
-     * @return A vector of requests data.
+     * Put requests results into answers.json file
+     * @param[in] answers - vector of answers to be placed into answers.json file
      */
-    std::vector<std::string> GetRequestsData();
+    void putAnswers(std::vector<std::vector<std::pair<int, float>>> answers);
 
     /**
-     * @brief Puts answers into the ConverterJson object.
-     *
-     * @param answers A vector of vectors of pairs of integers and floats.
+     * Read config file specified in CONFIG_FILE_PATH
      */
-    void putAnswers(std::vector<std::vector<std::pair<int, float>>> answers, const std::string &dir_answers);
+    void readConfigFile(std::string path = "config.json");
+
+    /**
+     * Read request file specified in REQUEST_FILE_PATH
+     */
+    void readRequestFile(std::string path = "requests.json");
+
+    /**
+     * Get maximal responses quantity, which can be returned be Search Server
+     * @return maximal responses quantity
+     */
+    int getMaxResponses() const;
 
 private:
-    /**
-     * @brief Reads the configuration file.
-     */
-    void readConfig();
-
-    /**
-     * @brief Sets the response limit.
-     */
-    void ResponseLimit();
-
-    /**
-     * @brief Gets the requests.
-     *
-     * @return A vector of requests.
-     */
-    std::vector<std::string> GetRequests();
-
-    int m_numOfFiles{};  /**< Number of files. */
-    int m_respLimit{};   /**< Response limit. */
-    std::vector<std::string> m_textFromDocs;  /**< Vector of text documents. */
-    std::vector<std::string> m_requests;      /**< Vector of requests. */
-    std::vector<std::string> m_filePaths;     /**< Vector of file paths. */
-
-    nlohmann::json m_configFile;  /**< Configuration file. */
-    nlohmann::json m_requestFile; /**< Request file. */
-    nlohmann::json m_answerFile;  /**< Answer file. */
-    Answer m_ans;        /**< Answer object. */
+    ConverterJSON() = default; // private constructor for singleton realization
+    static ConverterJSON *instance;
+    const std::string ANSWERS_FILE_PATH = "answers.json";
+    std::string applicationName;
+    std::string applicationVersion;
+    int maxResponses{5};
+    std::vector<std::string> resourcesPaths;
+    std::vector<std::string> textDocuments;
+    std::vector<std::string> requests;
 };
 
 

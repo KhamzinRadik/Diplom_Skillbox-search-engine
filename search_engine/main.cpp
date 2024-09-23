@@ -25,10 +25,10 @@ void createJsons() {
 
 int main() {
     createJsons();
+
     std::ifstream _dir(CONFIG_DIR);
     ConverterJson conv(_dir);
-    conv.GetResponseLimit();
-    conv.GetRequestsData();
+    auto _limitResponse = conv.GetResponseLimit();
     InvertedIndex inv(conv);
     inv.UpdateDocumentBase(conv.GetTextDocuments());
     inv.threadsDistribution();

@@ -1,96 +1,160 @@
 #include "SearchServer.h"
 
-std::vector<std::vector<std::pair<int, float>>> SearchServer::finder(const std::vector<std::string> &queries_input) {
-    for (const auto & i : queries_input) {
-        uniqRequestsFill(i);
-        preRelevanceFill();
-        m_maxAbsRelevance = findMaxAbsRel();
-        m_result.push_back(sortRelativeIndex());
+#include <spdlog/spdlog.h>
+
+#include <algorithm>
+
+
+std::set<std::string> SearchServer::getUniqueWords(const std::string& request)
+{
+    std::set<std::string> result;
+    std::istringstream ist(request);
+    for (std::string word; ist >> word; )
+    {
+        //Convert symbols to lower case:
+        std::transform(word.begin(), word.end(), word.begin(),
+                       [](unsigned char c){ return std::tolower(c); });
+
+        result.emplace(word);
     }
-    return m_result;
+    return result;
 }
 
-void SearchServer::uniqRequestsFill(const std::string &request) {
-    m_uniqRequests.clear();
-    int i = 0;
-    std::string requestWord;
-    while (request[i]) {
-        char tmpSym = request[i];
-        char tmpNxtSym = request[i + 1];
-        if (m_index.characterCondition(tmpSym)) {
-            requestWord.push_back(request[i]);
+std::vector<std::pair<std::string, size_t>> SearchServer::getWordsEntries(const std::set<std::string>& words)
+{
+    std::vector<std::pair<std::string, size_t>> result;
+    for (const auto& word : words)
+    {
+        auto wordEntries = _index.getWordCount(word);
+        size_t wordEntriesSum = 0;
+        for (auto wordEntry : wordEntries)
+        {
+            wordEntriesSum += wordEntry.count;
         }
-        if (InvertedIndex::wordCondition(tmpSym, tmpNxtSym)) {
-            m_uniqRequests.insert({requestWord, 0});
-            requestWord.clear();
-        }
-        i++;
+        std::pair<std::string, size_t> wordAndEntry;
+        wordAndEntry.first = word;
+        wordAndEntry.second = wordEntriesSum;
+        result.push_back(wordAndEntry);
     }
+    return result;
 }
 
-void SearchServer::preRelevanceFill() {
-    m_preRelevance.clear();
-    for (int i = 0; i < m_dataJson.GetFilesNum(); i++) {
-        int absRelevance = 0;
-        for (const auto &it: m_uniqRequests) {
-            auto it2 = m_index.getFreqDictionary()->find(it.first);
-            if (it2 != m_index.getFreqDictionary()->end()) {
-                for (auto &j: it2->second) {
-                    absRelevance += j.doc_id == i ? j.count : 0;
-                }
+std::vector<size_t> SearchServer::getAllDocumentsWithWords(const std::vector<std::pair<std::string, size_t>> &words)
+{
+    std::vector<size_t> docIds {};
+    // Getting entries and docIds:
+    for (const auto& wordAndEntry : words)
+    {
+        auto entries = _index.getWordCount(wordAndEntry.first);
+        for (auto entry : entries)
+        {
+            docIds.push_back(entry.doc_id);
+        }
+    }
+
+    // Getting unique ids from docIds:
+    std::set<size_t> uniqueDocIds (docIds.begin(), docIds.end());
+    docIds.clear();
+    docIds.assign(uniqueDocIds.begin(), uniqueDocIds.end());
+    std::sort(docIds.begin(), docIds.end(), std::less<size_t>());
+    return docIds;
+}
+
+void SearchServer::sortWordsAscendingToEntries(std::vector<std::pair<std::string, size_t>>& wordsEntries)
+{
+    std::sort(wordsEntries.begin(), wordsEntries.end(), [](auto &left, auto &right)
+    {
+        return left.second < right.second;
+    });
+}
+
+size_t SearchServer::getAbsoluteRelevanceForDocument(size_t docId, std::set<std::string> &uniqueWords) {
+    size_t absoluteRelevance {0};
+    for (const auto& word : uniqueWords)
+    {
+        size_t wordCountInDoc = _index.getWordCountInDoc(word, docId);
+        absoluteRelevance += wordCountInDoc;
+    }
+    return absoluteRelevance;
+}
+
+std::vector<std::vector<RelativeIndex>> SearchServer::search(const std::vector<std::string>& queries_input)
+{
+    std::vector<std::vector<RelativeIndex>> result{};
+    if (queries_input.empty())
+    {
+        spd "Requests are empty.\n";
+        return result;
+    }
+
+    for (const auto& query : queries_input)
+    {
+        // Get unique words from query
+        std::set<std::string> uniqueWords = getUniqueWords(query);
+        if (uniqueWords.empty())
+        {
+            std::cout << "\t-bad request.\n";
+            continue;
+        }
+
+        // Get the entry count for each word
+        auto wordsEntries = getWordsEntries(uniqueWords);
+
+        // Sort unique words according to entry count in ascending direction
+        sortWordsAscendingToEntries(wordsEntries);
+
+        // Get the document list of documents
+        auto documentIds = getAllDocumentsWithWords(wordsEntries);
+        std::string docOrDocs = documentIds.size() == 1 ? " document " : " documents ";
+        std::string wordOrWords = uniqueWords.size() == 1 ? " word: " : " words: ";
+
+        // Get absolute relevance and maximal relevance:
+        std::vector<RelativeIndex>* relativeIndexes = new std::vector<RelativeIndex>();
+        size_t maxAbsoluteRelevance {0};
+        for (const auto& docId : documentIds)
+        {
+            size_t absoluteRelevance = getAbsoluteRelevanceForDocument(docId, uniqueWords);
+            auto* relativeIndex = new RelativeIndex();
+            relativeIndex->doc_id = docId;
+            relativeIndex->absoluteIndex = absoluteRelevance;
+            relativeIndexes->push_back(*relativeIndex);
+            delete relativeIndex;
+            if (absoluteRelevance > maxAbsoluteRelevance) maxAbsoluteRelevance = absoluteRelevance;
+        }
+
+        // Get relative relevance for each document:
+        for (auto& relativeIndex : *relativeIndexes)
+        {
+            if (maxAbsoluteRelevance != 0)
+            {
+                float rank = (float) relativeIndex.absoluteIndex / (float) maxAbsoluteRelevance;
+                int rounded = (int) std::round(rank * 100);
+                rank = (float) rounded / 100;
+                relativeIndex.rank = rank;
             }
+            else relativeIndex.rank = 0;
         }
-        m_preRelevance.insert({i, absRelevance});
+
+        // Sort the documents according to relevance (descending):
+        std::sort(relativeIndexes->begin(), relativeIndexes->end(), [&relativeIndexes](RelativeIndex &left, RelativeIndex &right)
+        {
+            return (left.rank > right.rank || (left.rank == right.rank && left.doc_id < right.doc_id));
+        });
+
+        //Cut the result according to maxResponsesCount from InvertedIndex:
+        if (relativeIndexes->size() > maxResponses)
+        {
+            relativeIndexes->erase(relativeIndexes->begin() + maxResponses, relativeIndexes->end());
+        }
+
+        // Push this vector to the result:
+        result.push_back(*relativeIndexes);
+        delete relativeIndexes;
     }
+    return result;
 }
 
-int SearchServer::findMaxAbsRel() {
-    for (auto &it: m_preRelevance) {
-        if (it.second > m_maxAbsRelevance) {
-            m_maxAbsRelevance = it.second;
-        }
-    }
-    return m_maxAbsRelevance;
-}
-
-std::vector<std::pair<int, float>> SearchServer::sortRelativeIndex() {
-    int counter = 0;
-    m_relativeIndex.clear();
-
-    std::multimap<int, int> reverseMyMap;
-    for (auto it: m_preRelevance) {
-        reverseMyMap.insert({it.second, it.first});
-    }
-
-    for (auto it = reverseMyMap.rbegin(); it != reverseMyMap.rend(); it++) {
-        std::pair<int, float> tempIndex;
-        tempIndex.first = it->second;
-        if (m_maxAbsRelevance != 0)
-            tempIndex.second = floorf(100 * (float) (it->first) / m_maxAbsRelevance) / 100;
-        else tempIndex.second = 0;
-        if (tempIndex.second > 0) {
-            m_relativeIndex.push_back(tempIndex);
-        }
-    }
-
-    std::vector<std::pair<int, float>> relativeIndexTemp1;
-    std::vector<std::pair<int, float>> relativeIndexTemp2;
-
-    for (int i = 0; i < m_relativeIndex.size(); i++) {
-        while (m_relativeIndex[i].second == m_relativeIndex[i + 1].second) {
-            relativeIndexTemp1.push_back(m_relativeIndex[i]);
-            i++;
-        }
-        relativeIndexTemp1.push_back(m_relativeIndex[i]);
-        std::sort(relativeIndexTemp1.begin(), relativeIndexTemp1.end());
-        for (auto it: relativeIndexTemp1) {
-            if (counter < m_dataJson.GetResponseLimit()) {
-                relativeIndexTemp2.push_back(it);
-                counter++;
-            }
-        }
-        relativeIndexTemp1.clear();
-    }
-
-    return relativeIndexTemp2;
+void SearchServer::setMaxResponses(const int &newMaxResponses)
+{
+    this->maxResponses = newMaxResponses;
 }

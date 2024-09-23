@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.28)
 
 set(unit_name "search_engine")
+set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_BUILD_TYPE Release CACHE STRING "" FORCE)
+set(CMAKE_CXX_STANDARD 20)
 project(${unit_name} CXX)
 
 set(TEST ON)

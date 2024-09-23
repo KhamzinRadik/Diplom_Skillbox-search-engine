@@ -26,8 +26,7 @@ InvertedIndex idx(conv);
 idx.UpdateDocumentBase(docs);
 idx.threadsDistribution();
 SearchServer srv(idx,conv);
-std::vector<std::vector<std::pair<int, float>>> result = srv.finder(request);
-ASSERT_EQ(result, expected);
+ASSERT_EQ(srv.finder(request), expected);
 }
 TEST(TestCaseSearchServer, TestTop5) {
 std::vector<std::string> docs = {
