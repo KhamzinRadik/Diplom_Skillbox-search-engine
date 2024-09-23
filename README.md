@@ -1,5 +1,4 @@
-![GitHub repo size](https://img.shields.io/github/repo-size/OldScripter/Search-in-files)
-![GitHub author](https://img.shields.io/badge/made_on-C++-red)
+![GitHub author](https://img.shields.io/badge/made_on-C++-blue)
 ##  Поиск слов в файлах.
 
 ## Описание
