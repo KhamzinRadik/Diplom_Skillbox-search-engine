@@ -28,7 +28,7 @@ config.json). Результат поиска помещается в answers.js
 ```json
 {
   "config": {
-    "name": "FileSearchEngine",
+    "name": "search-engine",
     "version": "0.1",
     "max_responses": 5
   },
