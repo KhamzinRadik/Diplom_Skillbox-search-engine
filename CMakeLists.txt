@@ -73,14 +73,14 @@ if (TEST)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests/lib)
     add_executable(
             ${unit_test}
-            tests/test_InvertedIndex.cpp
-            tests/test_SearchServer.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_InvertedIndex.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_SearchServer.cpp
 
             ${header}
 
-            ../${unit_name}/InvertedIndex.cpp
-            ../${unit_name}/ConvertedJson.cpp
-            ../${unit_name}/SearchServer.cpp
+           ${CMAKE_CURRENT_SOURCE_DIR}/${unit_name}/InvertedIndex.cpp
+           ${CMAKE_CURRENT_SOURCE_DIR}/${unit_name}/ConvertedJson.cpp
+           ${CMAKE_CURRENT_SOURCE_DIR}/${unit_name}/SearchServer.cpp
     )
     set_target_properties(${unit_test} PROPERTIES
             CXX_STANDARD 14
