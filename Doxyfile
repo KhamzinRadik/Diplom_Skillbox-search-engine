@@ -1,0 +1,10 @@
+PROJECT_NAME           = Search-engin
+OUTPUT_DIRECTORY      = doc
+INPUT                  = ./search_engine ./include
+RECURSIVE             = YES
+FILE_PATTERNS          = *.h *.cpp
+EXCLUDE               =
+GENERATE_HTML         = YES
+QUIET                 = YES
+EXTRACT_ALL           = YES
+AUTOLINK_REFERENCES   = YES

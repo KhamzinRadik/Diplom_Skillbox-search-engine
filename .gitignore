@@ -34,5 +34,5 @@ cmake-build-*
 .idea*
 out/
 .vs
-
+doc/
 
