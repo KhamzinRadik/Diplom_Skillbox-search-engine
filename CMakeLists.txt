@@ -66,19 +66,13 @@ target_link_libraries(${unit_name} PRIVATE nlohmann_json::nlohmann_json spdlog)
 
 if (TEST)
     set(unit_test "run-test")
-
-    FetchContent_Declare(
-            googletest
-            URL https://github.com/google/googletest/archive/5376968f6948923e2411081fd9372e71a59d8e77.zip
-    )
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(googletest)
-
-    find_package(GTest REQUIRED)
-    include_directories(${GTEST_INCLUDE_DIRS} include/${unit_name})
-
-    # Create the test executable
-    add_executable(${unit_test}
+    project(Google_tests)
+    enable_testing()
+    include_directories(${unit_test} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/${unit_name})
+    include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests/lib)
+    add_executable(
+            ${unit_test}
             tests/test_InvertedIndex.cpp
             tests/test_SearchServer.cpp
 
@@ -88,8 +82,11 @@ if (TEST)
             ${unit_name}/ConvertedJson.cpp
             ${unit_name}/SearchServer.cpp
     )
-    target_link_libraries(${unit_test} ${GTEST_LIBRARIES} pthread nlohmann_json::nlohmann_json spdlog)
+    set_target_properties(${unit_test} PROPERTIES
+            CXX_STANDARD 14
+            CXX_STANDARD_REQUIRED ON
+    )
+    target_link_libraries(${unit_test} gtest gtest_main  nlohmann_json::nlohmann_json spdlog)
 endif (TEST)
-
 
 
