@@ -35,11 +35,12 @@ std::vector<std::string> ConverterJSON::getTextDocuments() {
             spdlog::error("File content reading:\t- file not found error " + doc);
         }
     }
-    spdlog::info(&"Input docs read success: %d, %s"[resourcesPaths.size()], " files");
+    spdlog::info("Input docs read success: %d, %s",resourcesPaths.size(), " files");
     return textDocuments;
 }
 
 int ConverterJSON::getResponsesLimit() const {
+
     return maxResponses;
 }
 

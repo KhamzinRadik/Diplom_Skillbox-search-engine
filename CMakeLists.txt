@@ -78,9 +78,9 @@ if (TEST)
 
             ${header}
 
-            ${unit_name}/InvertedIndex.cpp
-            ${unit_name}/ConvertedJson.cpp
-            ${unit_name}/SearchServer.cpp
+            ../${unit_name}/InvertedIndex.cpp
+            ../${unit_name}/ConvertedJson.cpp
+            ../${unit_name}/SearchServer.cpp
     )
     set_target_properties(${unit_test} PROPERTIES
             CXX_STANDARD 14
